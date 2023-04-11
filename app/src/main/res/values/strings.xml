@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">MyCrud</string>
+    <string name="name">Nombre:</string>
+    <string name="date">Fecha:</string>
+    <string name="edit_data">Editar Datos</string>
+    <string name="add_img">Añadir Imagen</string>
+    <string name="username">Usuario</string>
+    <string name="password">Contraseña</string>
+    <string name="birthdate">Fecha nacimiento</string>
+    <string name="save_user">Guardar Usuario</string>
+    <string name="access">Acceder</string>
+    <string name="darse_de_alta">Darse de Alta</string>
+    <string name="btnDel">Borrar Usuario</string>
+    <string name="user_group">Grupo de Usuario</string>
+</resources>
