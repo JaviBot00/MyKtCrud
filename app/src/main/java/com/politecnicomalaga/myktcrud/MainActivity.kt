@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
                         ), RECYCLER_REQUEST
                     )
                 } else {
-                    Snackbar.make(it, "yayayayayyai", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(it, "This user not exist", Snackbar.LENGTH_LONG).show()
                 }
             }
         }
@@ -96,15 +96,21 @@ class MainActivity : AppCompatActivity() {
                     "User successfully registered",
                     Snackbar.LENGTH_LONG
                 ).show()
+            } else if (resultCode == RESULT_CANCELED){
+                Snackbar.make(
+                    findViewById(android.R.id.content),
+                    "User not registered",
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
         }
 
         if (requestCode == RECYCLER_REQUEST) {
-            if (resultCode == RESULT_OK) {
+//            if (resultCode == RESULT_OK) {
                 Snackbar.make(
                     findViewById(android.R.id.content), "Successful log out", Snackbar.LENGTH_LONG
                 ).show()
             }
-        }
+//        }
     }
 }

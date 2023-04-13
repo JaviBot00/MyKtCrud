@@ -51,6 +51,10 @@ class SQLiteManager(context: Context) :
         TODO("Not yet implemented")
     }
 
+    fun setReadable() {
+        db = this.readableDatabase
+    }
+
     fun setWritable() {
         db = this.writableDatabase
     }

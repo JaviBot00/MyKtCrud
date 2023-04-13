@@ -1,5 +1,6 @@
 package com.politecnicomalaga.myktcrud.view
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentValues
 import android.content.DialogInterface
@@ -8,6 +9,7 @@ import android.content.pm.PackageManager
 import android.database.SQLException
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
@@ -23,12 +25,15 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
+import com.politecnicomalaga.myktcrud.MainActivity
 import com.politecnicomalaga.myktcrud.R
 import com.politecnicomalaga.myktcrud.model.SQLiteManager
 import com.politecnicomalaga.myktcrud.model.UserFeatures
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -39,13 +44,16 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var textInputBirthday: TextInputLayout
     private lateinit var textInputUserGroup: TextInputLayout
     private lateinit var imgProfile: ImageView
-    private lateinit var btnGetImg: Button
+    private lateinit var btnAddImg: FloatingActionButton
+    private lateinit var btnSearchImg: FloatingActionButton
     private lateinit var btnSaveUser: Button
-    lateinit var myImageBitMap: Bitmap
-    lateinit var myImageByteArray: ByteArray
+    private var myImageBitMap: Bitmap? = null
+    private var myImageByteArray: ByteArray? = null
 
     val CAMERA_PERMISSION_REQUEST = 1
-    val CAMERA_REQUEST = 2
+    val CAMERA_REQUEST = 10
+    val GALLERY_PERMISSION_REQUEST = 2
+    val GALLERY_REQUEST = 20
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +64,8 @@ class RegisterActivity : AppCompatActivity() {
         textInputBirthday = findViewById(R.id.txtFldBirthday)
         textInputUserGroup = findViewById(R.id.txtFldUserGroup)
         imgProfile = findViewById(R.id.imgProfile)
-        btnGetImg = findViewById(R.id.btnAddImg)
+        btnAddImg = findViewById(R.id.btnAddImg)
+        btnSearchImg = findViewById(R.id.btnSearchImg)
         btnSaveUser = findViewById(R.id.btnSaveUser)
 
         val myIntent = intent
@@ -68,8 +77,8 @@ class RegisterActivity : AppCompatActivity() {
             auxUsername = myBundle.getString("username").toString()
             mySQLite.setWritable()
             val myCursor = mySQLite.getOneUser(auxUsername)
-            mySQLite.getDb().close()
             if (myCursor.moveToNext()) {
+                mySQLite.getDb().close()
                 auxUsername = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_USER[1]))
                 textInputUser.editText?.setText(myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_USER[1])))
                 textInputPassword.editText?.setText(
@@ -162,13 +171,49 @@ class RegisterActivity : AppCompatActivity() {
                 }.show()
         }
 
-        btnGetImg.setOnClickListener {
+        btnAddImg.setOnClickListener {
             if (ContextCompat.checkSelfPermission(
-                    this@RegisterActivity, android.Manifest.permission.CAMERA
+                    this@RegisterActivity, Manifest.permission.CAMERA
                 ) == PackageManager.PERMISSION_DENIED
             ) {
                 requestPermissions(
-                    arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST
+                    arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST
+                )
+            } else if (ContextCompat.checkSelfPermission(
+                    this@RegisterActivity, Manifest.permission.CAMERA
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                startActivityForResult(
+                    Intent(
+                        MediaStore.ACTION_IMAGE_CAPTURE
+                    ), CAMERA_REQUEST
+                )
+            }
+        }
+
+        btnSearchImg.setOnClickListener {
+            if ((ContextCompat.checkSelfPermission(
+                    this@RegisterActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_DENIED) || (ContextCompat.checkSelfPermission(
+                    this@RegisterActivity, Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_DENIED)
+            ) {
+                requestPermissions(
+                    arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ), GALLERY_PERMISSION_REQUEST
+                )
+            } else if (ContextCompat.checkSelfPermission(
+                    this@RegisterActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+                    this@RegisterActivity, Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                startActivityForResult(
+                    Intent(
+                        Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    ), GALLERY_REQUEST
                 )
             }
         }
@@ -185,7 +230,7 @@ class RegisterActivity : AppCompatActivity() {
                     } else if (textInputUserGroup.editText?.text.isNullOrEmpty()) {
                         textInputPassword.error = "Choose a Rol"
                     } else {
-                        lateinit var auxUser: UserFeatures
+                        val auxUser = UserFeatures()
                         auxUser.username = textInputUser.editText?.text.toString()
                         auxUser.password = textInputPassword.editText?.text.toString()
                         auxUser.birthday = textInputBirthday.editText?.text.toString()
@@ -200,12 +245,11 @@ class RegisterActivity : AppCompatActivity() {
                 }
             } else {
                 addUser(it)
-                val result = Intent(this@RegisterActivity, RecyclerviewActivity::class.java)
+                val result = Intent(this@RegisterActivity, MainActivity::class.java)
                 setResult(RESULT_OK, result)
                 finish()
             }
         }
-
     }
 
     private fun editUser(auxUser: UserFeatures, auxUsername: String) {
@@ -262,7 +306,6 @@ class RegisterActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
     private fun getTheImage(imgByte: ByteArray?): Bitmap? {
@@ -275,16 +318,36 @@ class RegisterActivity : AppCompatActivity() {
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startActivityForResult(
-                Intent(
-                    MediaStore.ACTION_IMAGE_CAPTURE
-                ), CAMERA_REQUEST
-            )
-        } else {
-            requestPermissions(
-                arrayOf(android.Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST
-            )
+        when (requestCode) {
+            CAMERA_PERMISSION_REQUEST -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startActivityForResult(
+                        Intent(
+                            MediaStore.ACTION_IMAGE_CAPTURE
+                        ), CAMERA_REQUEST
+                    )
+                } else {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST
+                    )
+                }
+            }
+            GALLERY_PERMISSION_REQUEST -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    startActivityForResult(
+                        Intent(
+                            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        ), GALLERY_REQUEST
+                    )
+                } else {
+                    requestPermissions(
+                        arrayOf(
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        ), GALLERY_PERMISSION_REQUEST
+                    )
+                }
+            }
         }
     }
 
@@ -294,8 +357,18 @@ class RegisterActivity : AppCompatActivity() {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             if (data != null) {
                 myImageBitMap = data.extras?.get("data") as Bitmap
-                lateinit var stream: ByteArrayOutputStream
-                myImageBitMap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                val stream = ByteArrayOutputStream()
+                myImageBitMap!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                myImageByteArray = stream.toByteArray()
+                imgProfile.setImageBitmap(myImageBitMap)
+            }
+        }
+
+        if (requestCode == GALLERY_REQUEST && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                myImageBitMap = BitmapFactory.decodeStream(contentResolver.openInputStream(data.data as Uri))
+                val stream = ByteArrayOutputStream()
+                myImageBitMap!!.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 myImageByteArray = stream.toByteArray()
                 imgProfile.setImageBitmap(myImageBitMap)
             }
@@ -343,5 +416,15 @@ class RegisterActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        MaterialAlertDialogBuilder(this@RegisterActivity).setTitle("Warning")
+            .setMessage("Si sale de esta pantalla, perdera los datos escritos \n¿Esta seguro de salir?")
+            .setPositiveButton("SI") { dialogInterface: DialogInterface?, i: Int ->
+                super.onBackPressed()
+            }.setNegativeButton("NO") { dialogInterface: DialogInterface?, i: Int ->
+            }.show()
     }
 }

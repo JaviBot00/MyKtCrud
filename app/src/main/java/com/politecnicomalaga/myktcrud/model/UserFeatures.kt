@@ -7,6 +7,6 @@ class UserFeatures {
     lateinit var username: String
     lateinit var password: String
     lateinit var birthday: String
-    lateinit var imgProfile: Bitmap
+    var imgProfile: Bitmap? = null
     lateinit var userRol: String
 }
