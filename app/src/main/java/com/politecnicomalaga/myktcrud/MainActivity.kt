@@ -1,17 +1,23 @@
 package com.politecnicomalaga.myktcrud
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.example.primeraapp.Conexion.LoginResponse
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
+import com.google.gson.Gson
 import com.politecnicomalaga.myktcrud.model.SQLiteManager
 import com.politecnicomalaga.myktcrud.view.RecyclerviewActivity
-import com.politecnicomalaga.myktcrud.view.RegisterActivity
+import okhttp3.OkHttpClient
+import okhttp3.Request
 
 
 class MainActivity : AppCompatActivity() {
@@ -79,9 +85,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnRegister.setOnClickListener {
-            startActivityForResult(
-                Intent(this@MainActivity, RegisterActivity::class.java), REGISTER_REQUEST
-            )
+//            startActivityForResult(
+//                Intent(this@MainActivity, RegisterActivity::class.java), REGISTER_REQUEST
+//            )
+            DownloadFilesTask().execute()
         }
     }
 
@@ -96,21 +103,72 @@ class MainActivity : AppCompatActivity() {
                     "User successfully registered",
                     Snackbar.LENGTH_LONG
                 ).show()
-            } else if (resultCode == RESULT_CANCELED){
+            } else if (resultCode == RESULT_CANCELED) {
                 Snackbar.make(
-                    findViewById(android.R.id.content),
-                    "User not registered",
-                    Snackbar.LENGTH_LONG
+                    findViewById(android.R.id.content), "User not registered", Snackbar.LENGTH_LONG
                 ).show()
             }
         }
 
         if (requestCode == RECYCLER_REQUEST) {
 //            if (resultCode == RESULT_OK) {
+            Snackbar.make(
+                findViewById(android.R.id.content), "Successful log out", Snackbar.LENGTH_LONG
+            ).show()
+        }
+//        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    inner class DownloadFilesTask : AsyncTask<Void, Void, String>() {
+        override fun doInBackground(vararg params: Void?): String {
+//            val url = URL("http://172.26.100.205:8585/Partes/resources/login?usuario=i&password=i")
+////            val url =
+////                URL("http://172.26.100.205:8585/Partes/resources/login?usuario=" + txt + "i&password=i")
+//            val conn = url.openConnection() as HttpURLConnection
+//            conn.setRequestProperty("Content-Type", "application/json;")
+////            val status = conn.responseCode
+////            val gson = Gson()
+////            var loginResponse = LoginResponse()
+////            if (status == HttpURLConnection.HTTP_OK) {
+////                loginResponse =
+////                    gson.toJson(conn.responseMessage, LoginResponse::class.java) as LoginResponse
+////            }
+//            return conn.responseMessage.toString()
+            try {
+                val client = OkHttpClient()
+                val request = Request.Builder()
+                    .url("http://172.26.100.205:8585/Partes/resources/login?usuario=i&password=i")
+                    .build()
+                val response = client.newCall(request).execute()
+                return response.body?.string() ?: ""
+            } catch (e: Exception) {
                 Snackbar.make(
-                    findViewById(android.R.id.content), "Successful log out", Snackbar.LENGTH_LONG
+                    findViewById(android.R.id.content),
+                    e.toString(),
+                    Snackbar.LENGTH_LONG
                 ).show()
             }
-//        }
+            return ""
+        }
+
+        override fun onPostExecute(result: String?) {
+//            super.onPostExecute(result)
+            val gson = Gson()
+            val loginResponse = gson.fromJson(result, LoginResponse::class.java)
+            if (loginResponse.getRespuesta()?.id.toString() == "1") {
+                Toast.makeText(
+                    this@MainActivity,
+                    loginResponse.getOperario()?.getPersona()?.getDenominacionSocial(),
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                Toast.makeText(
+                    this@MainActivity,
+                    loginResponse.getRespuesta()?.mensaje.toString(),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 }
