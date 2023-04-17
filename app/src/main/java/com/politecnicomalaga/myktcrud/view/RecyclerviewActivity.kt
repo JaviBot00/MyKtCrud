@@ -38,7 +38,7 @@ class RecyclerviewActivity : AppCompatActivity() {
         myAdapter.setInterEditUser(object : UsersRVAdapter.EditUser {
             override fun editUser(user: UserFeatures) {
                 val myIntent = Intent(this@RecyclerviewActivity, RegisterActivity::class.java)
-                myIntent.putExtra("username", user.username)
+                myIntent.putExtra("username", user.getUserName())
                 myIntent.putExtra("editMode", true)
                 startActivityForResult(myIntent, EDIT_REQUEST)
             }
@@ -48,7 +48,7 @@ class RecyclerviewActivity : AppCompatActivity() {
             override fun delUser(context: Context, user: UserFeatures, position: Int) {
                 val mySQLite = SQLiteManager(context)
                 mySQLite.setWritable()
-                mySQLite.deleteUser(user.username)
+                mySQLite.deleteUser(user.getUserName())
                 mySQLite.getDb().close()
                 myUsers.removeAt(position)
                 myAdapter.notifyItemRemoved(position)
@@ -63,15 +63,23 @@ class RecyclerviewActivity : AppCompatActivity() {
         mySQLite.setReadable()
         val myCursor = mySQLite.getUsers()
         while (myCursor.moveToNext()) {
-            val auxUser = UserFeatures()
-            auxUser.username = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_USER[1]))
-            auxUser.password =
-                myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_PASSWORD[1]))
-            auxUser.birthday =
-                myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_BIRTHDATE[1]))
-            auxUser.imgProfile =
+            val auxUserName = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_USER[1]))
+            val auxPassWord = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_PASSWORD[1]))
+            val auxBirthDay = myCursor.getString(
+                Integer.parseInt(SQLiteManager.TUsers_BIRTHDATE[1])
+            )
+            val auxImgProfile =
                 getTheImage(myCursor.getBlob(Integer.parseInt(SQLiteManager.TUsers_IMGPROFILE[1])))
-            auxUser.userRol = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_ROLE[1]))
+            val auxUserRol = myCursor.getString(
+                Integer.parseInt(SQLiteManager.TUsers_ROLE[1])
+            )
+            val auxUser = UserFeatures(
+                auxUserName,
+                auxPassWord,
+                auxBirthDay,
+                auxImgProfile,
+                auxUserRol
+            )
             myUsers.add(auxUser)
         }
         myAdapter.setMyUsers(myUsers)

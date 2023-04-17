@@ -10,12 +10,13 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.primeraapp.Conexion.LoginResponse
+import com.politecnicomalaga.myktcrud.model.service.LoginResponse
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
 import com.politecnicomalaga.myktcrud.model.SQLiteManager
 import com.politecnicomalaga.myktcrud.view.RecyclerviewActivity
+import com.politecnicomalaga.myktcrud.view.RegisterActivity
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
@@ -85,10 +86,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnRegister.setOnClickListener {
-//            startActivityForResult(
-//                Intent(this@MainActivity, RegisterActivity::class.java), REGISTER_REQUEST
-//            )
-            DownloadFilesTask().execute()
+            startActivityForResult(
+                Intent(this@MainActivity, RegisterActivity::class.java), REGISTER_REQUEST
+            )
+//            DownloadFilesTask().execute()
         }
     }
 

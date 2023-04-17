@@ -1,4 +1,4 @@
-package com.example.primeraapp.Conexion
+package com.politecnicomalaga.myktcrud.model.service
 
 class Operario {
     private var idoperario = 0

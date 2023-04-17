@@ -1,6 +1,4 @@
-package com.example.primeraapp.Conexion
-
-import com.politecnicomalaga.myktcrud.model.service.Respuesta
+package com.politecnicomalaga.myktcrud.model.service
 
 class LoginResponse {
     private var operario: Operario? = null

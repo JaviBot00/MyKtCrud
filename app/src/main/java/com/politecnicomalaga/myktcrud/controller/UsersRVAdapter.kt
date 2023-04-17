@@ -41,11 +41,11 @@ class UsersRVAdapter(fromActivity: Context, myUsersList: ArrayList<UserFeatures>
         val myUser: UserFeatures = myUsers[position]
         val myOptions: Array<String> = SQLiteManager.TUG_ROLES
 
-        if (myUser.imgProfile != null) {
-            holder.imgProfile.setImageBitmap(myUser.imgProfile)
+        if (myUser.getImgProfile() != null) {
+            holder.imgProfile.setImageBitmap(myUser.getImgProfile())
         }
-        holder.txtUserName.text = myUser.username
-        holder.txtBirthday.text = myUser.birthday
+        holder.txtUserName.text = myUser.getUserName()
+        holder.txtBirthday.text = myUser.getBirthday()
 
         holder.btnEdit.setOnClickListener {
             if (interEditUser != null) {
@@ -56,7 +56,7 @@ class UsersRVAdapter(fromActivity: Context, myUsersList: ArrayList<UserFeatures>
             interDelUser.delUser(myContext, myUser, position)
         }
 
-        when (myUser.userRol) {
+        when (myUser.getUserRol()) {
             myOptions[0] -> holder.cardFeatures.setCardBackgroundColor(Color.DKGRAY)
             myOptions[1] -> holder.cardFeatures.setCardBackgroundColor(Color.CYAN)
             myOptions[2] -> holder.cardFeatures.setCardBackgroundColor(Color.parseColor("#FFBB86FC"))
