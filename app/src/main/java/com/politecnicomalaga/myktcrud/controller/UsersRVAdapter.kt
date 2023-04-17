@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.politecnicomalaga.myktcrud.R
-import com.politecnicomalaga.myktcrud.model.SQLiteManager
+import com.politecnicomalaga.myktcrud.model.MySQLiteManager
 import com.politecnicomalaga.myktcrud.model.UserFeatures
 
 class UsersRVAdapter(fromActivity: Context, myUsersList: ArrayList<UserFeatures>) :
@@ -39,7 +39,7 @@ class UsersRVAdapter(fromActivity: Context, myUsersList: ArrayList<UserFeatures>
 
     override fun onBindViewHolder(holder: UsersRVHolder, position: Int) {
         val myUser: UserFeatures = myUsers[position]
-        val myOptions: Array<String> = SQLiteManager.TUG_ROLES
+        val myOptions: Array<String> = MySQLiteManager.TUG_ROLES
 
         if (myUser.getImgProfile() != null) {
             holder.imgProfile.setImageBitmap(myUser.getImgProfile())

@@ -14,7 +14,9 @@ import com.politecnicomalaga.myktcrud.model.service.LoginResponse
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
-import com.politecnicomalaga.myktcrud.model.SQLiteManager
+import com.politecnicomalaga.myktcrud.controller.CallWebLoginRetrofit
+import com.politecnicomalaga.myktcrud.controller.CallWebLoginService
+import com.politecnicomalaga.myktcrud.model.MySQLiteManager
 import com.politecnicomalaga.myktcrud.view.RecyclerviewActivity
 import com.politecnicomalaga.myktcrud.view.RegisterActivity
 import okhttp3.OkHttpClient
@@ -64,7 +66,7 @@ class MainActivity : AppCompatActivity() {
             } else if (textInputPassword.editText?.text.isNullOrEmpty()) {
                 textInputPassword.error = "Incorrect Password"
             } else {
-                val mySQLite = SQLiteManager(this@MainActivity)
+                val mySQLite = MySQLiteManager(this@MainActivity)
                 mySQLite.setWritable()
                 val myCursor = mySQLite.getUserLogin(
                     textInputUser.editText!!.text.toString(),
@@ -89,7 +91,8 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(
                 Intent(this@MainActivity, RegisterActivity::class.java), REGISTER_REQUEST
             )
-//            DownloadFilesTask().execute()
+//            CallWebLoginService(this@MainActivity).execute()
+//            CallWebLoginRetrofit().loadData(this@MainActivity)
         }
     }
 
@@ -118,58 +121,6 @@ class MainActivity : AppCompatActivity() {
             ).show()
         }
 //        }
-    }
 
-    @SuppressLint("StaticFieldLeak")
-    inner class DownloadFilesTask : AsyncTask<Void, Void, String>() {
-        override fun doInBackground(vararg params: Void?): String {
-//            val url = URL("http://172.26.100.205:8585/Partes/resources/login?usuario=i&password=i")
-////            val url =
-////                URL("http://172.26.100.205:8585/Partes/resources/login?usuario=" + txt + "i&password=i")
-//            val conn = url.openConnection() as HttpURLConnection
-//            conn.setRequestProperty("Content-Type", "application/json;")
-////            val status = conn.responseCode
-////            val gson = Gson()
-////            var loginResponse = LoginResponse()
-////            if (status == HttpURLConnection.HTTP_OK) {
-////                loginResponse =
-////                    gson.toJson(conn.responseMessage, LoginResponse::class.java) as LoginResponse
-////            }
-//            return conn.responseMessage.toString()
-            try {
-                val client = OkHttpClient()
-                val request = Request.Builder()
-                    .url("http://172.26.100.205:8585/Partes/resources/login?usuario=i&password=i")
-                    .build()
-                val response = client.newCall(request).execute()
-                return response.body?.string() ?: ""
-            } catch (e: Exception) {
-                Snackbar.make(
-                    findViewById(android.R.id.content),
-                    e.toString(),
-                    Snackbar.LENGTH_LONG
-                ).show()
-            }
-            return ""
-        }
-
-        override fun onPostExecute(result: String?) {
-//            super.onPostExecute(result)
-            val gson = Gson()
-            val loginResponse = gson.fromJson(result, LoginResponse::class.java)
-            if (loginResponse.getRespuesta()?.id.toString() == "1") {
-                Toast.makeText(
-                    this@MainActivity,
-                    loginResponse.getOperario()?.getPersona()?.getDenominacionSocial(),
-                    Toast.LENGTH_LONG
-                ).show()
-            } else {
-                Toast.makeText(
-                    this@MainActivity,
-                    loginResponse.getRespuesta()?.mensaje.toString(),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
     }
 }

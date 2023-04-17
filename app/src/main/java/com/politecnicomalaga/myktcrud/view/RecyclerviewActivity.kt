@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -13,8 +14,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.politecnicomalaga.myktcrud.R
 import com.politecnicomalaga.myktcrud.controller.UsersRVAdapter
-import com.politecnicomalaga.myktcrud.model.SQLiteManager
+import com.politecnicomalaga.myktcrud.model.MySQLiteManager
 import com.politecnicomalaga.myktcrud.model.UserFeatures
+import java.lang.Exception
 
 class RecyclerviewActivity : AppCompatActivity() {
 
@@ -37,16 +39,23 @@ class RecyclerviewActivity : AppCompatActivity() {
 
         myAdapter.setInterEditUser(object : UsersRVAdapter.EditUser {
             override fun editUser(user: UserFeatures) {
-                val myIntent = Intent(this@RecyclerviewActivity, RegisterActivity::class.java)
-                myIntent.putExtra("username", user.getUserName())
-                myIntent.putExtra("editMode", true)
-                startActivityForResult(myIntent, EDIT_REQUEST)
+                try {
+                    val myIntent = Intent(this@RecyclerviewActivity, EditActivity::class.java)
+                    myIntent.putExtra("username", user.getUserName())
+                    startActivityForResult(myIntent, EDIT_REQUEST)
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        this@RecyclerviewActivity,
+                        e.toString(),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         })
 
         myAdapter.setInterDelUser(object : UsersRVAdapter.DelUser {
             override fun delUser(context: Context, user: UserFeatures, position: Int) {
-                val mySQLite = SQLiteManager(context)
+                val mySQLite = MySQLiteManager(context)
                 mySQLite.setWritable()
                 mySQLite.deleteUser(user.getUserName())
                 mySQLite.getDb().close()
@@ -58,20 +67,20 @@ class RecyclerviewActivity : AppCompatActivity() {
 
     private fun cargarVista() {
         myUsers.clear()
-        val mySQLite = SQLiteManager(this)
+        val mySQLite = MySQLiteManager(this)
         mySQLite.setWritable()
         mySQLite.setReadable()
         val myCursor = mySQLite.getUsers()
         while (myCursor.moveToNext()) {
-            val auxUserName = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_USER[1]))
-            val auxPassWord = myCursor.getString(Integer.parseInt(SQLiteManager.TUsers_PASSWORD[1]))
+            val auxUserName = myCursor.getString(Integer.parseInt(MySQLiteManager.TUsers_USER[1]))
+            val auxPassWord = myCursor.getString(Integer.parseInt(MySQLiteManager.TUsers_PASSWORD[1]))
             val auxBirthDay = myCursor.getString(
-                Integer.parseInt(SQLiteManager.TUsers_BIRTHDATE[1])
+                Integer.parseInt(MySQLiteManager.TUsers_BIRTHDATE[1])
             )
             val auxImgProfile =
-                getTheImage(myCursor.getBlob(Integer.parseInt(SQLiteManager.TUsers_IMGPROFILE[1])))
+                getTheImage(myCursor.getBlob(Integer.parseInt(MySQLiteManager.TUsers_IMGPROFILE[1])))
             val auxUserRol = myCursor.getString(
-                Integer.parseInt(SQLiteManager.TUsers_ROLE[1])
+                Integer.parseInt(MySQLiteManager.TUsers_ROLE[1])
             )
             val auxUser = UserFeatures(
                 auxUserName,

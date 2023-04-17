@@ -1,6 +1,7 @@
 package com.politecnicomalaga.myktcrud.model
 
 import android.graphics.Bitmap
+import java.io.Serializable
 
 class UserFeatures(
     private var userName: String,
@@ -8,7 +9,7 @@ class UserFeatures(
     private var birthDay: String,
     private var imgProfile: Bitmap?,
     private var userRol: String
-) {
+) : Serializable {
 
 
     fun getUserName(): String {
